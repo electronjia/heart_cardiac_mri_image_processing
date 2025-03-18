@@ -10,7 +10,7 @@ import pydicom
 from config import *
 
 class AnnotationGUI:
-    def __init__(self, frame, save_path, sampling_rate, scale_factor=2):
+    def __init__(self, frame, save_path, sampling_rate, scale_factor=3):
         self.frame = frame
         self.save_path = save_path
         self.drawing = False
