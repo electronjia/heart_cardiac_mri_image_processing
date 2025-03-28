@@ -328,7 +328,10 @@ def marching_cubes_implementation(folder_path):
             break  # Take the first well-defined LV region
 
         if best_lv_centroid is None:
-            raise ValueError("Could not identify a well-segmented LV region in slices 41-100.")
+            # raise ValueError("Could not identify a well-segmented LV region in slices 41-100.")
+            # If no valid region is found, default to the center slice
+            chosen_slice = watershed_labels.shape[0] // 2  # Get the middle slice index
+            reference_lv_size = None  # No valid size measurement
 
         # Step 2: Find the label containing this LV centroid
         slice_labels = label(watershed_labels[chosen_slice])
@@ -341,6 +344,7 @@ def marching_cubes_implementation(folder_path):
 
         if best_lv_label is None:
             raise ValueError("Could not map the chosen LV centroid to a label in the reference slice.")
+
 
         # Assign LV label in the best slice
         lv_volume[chosen_slice] = (slice_labels == best_lv_label)  
@@ -399,7 +403,7 @@ def marching_cubes_implementation(folder_path):
 
         return cleaned_volume
 
-    def extract_surface_marching_cubes(original_volume, segmented_volume, spacing=(10.0, 1.367188, 1.367188)):
+    def extract_surface_marching_cubes(original_volume, segmented_volume, spacing):
         """
         Extracts a 3D surface mesh from the original DICOM volume using Marching Cubes.
         The segmentation mask is used as a threshold to isolate the left ventricle region.
@@ -520,7 +524,7 @@ def marching_cubes_implementation(folder_path):
         plt.tight_layout()
         plt.show()
 
-    def create_heartbeat_gif(original_volume, segmented_volume, folder_path, frames_per_slice=20):
+    def create_heartbeat_gif(original_volume, segmented_volume, folder_path, frames_per_slice=20, spacing =(10.0, 1.367188, 1.367188)):
         """
         Generates a GIF of the beating heart by iterating through the cardiac cycle.
         
@@ -551,7 +555,7 @@ def marching_cubes_implementation(folder_path):
             frame_original = original_volume[t::num_frames]  # Shape: (slices_per_frame, height, width)
             frame_segmented = segmented_volume[t::num_frames]  # Shape: (slices_per_frame, height, width)
 
-            vertices, faces = extract_surface_marching_cubes(frame_original, frame_segmented)
+            vertices, faces = extract_surface_marching_cubes(frame_original, frame_segmented, spacing)
 
             if vertices is None or faces is None:
                 continue  # Skip frames with no valid segmentation
@@ -670,8 +674,8 @@ def marching_cubes_implementation(folder_path):
         ed_index = np.argmax(lv_volumes)  # Frame with largest volume (EDV)
         es_index = np.argmin(lv_volumes)  # Frame with smallest volume (ESV)
 
-        edv = lv_volumes[ed_index]  # End-Diastolic Volume
-        esv = lv_volumes[es_index]  # End-Systolic Volume
+        edv = lv_volumes[ed_index]/100  # End-Diastolic Volume
+        esv = lv_volumes[es_index]/100  # End-Systolic Volume
 
         # Calculate Ejection Fraction
         ef = ((edv - esv) / edv) * 100 if edv > 0 else 0  # Avoid division by zero
@@ -681,12 +685,9 @@ def marching_cubes_implementation(folder_path):
         sa_es = lv_surface_areas[es_index]  # Surface area at ES
 
         # Estimate LV diameters (approximated as width of largest cross-section)
-        lv_diameter_ed = (3 * edv / (4 * np.pi))**(1/3) * 2  # Approximated from volume
-        lv_diameter_es = (3 * esv / (4 * np.pi))**(1/3) * 2  
+        lv_diameter_ed = (3 * edv / (4 * np.pi))**(1/3) * 20  # Approximated from volume
+        lv_diameter_es = (3 * esv / (4 * np.pi))**(1/3) * 20  
 
-        # Calculate sphericity index
-        sphericity_ed = lv_diameter_ed / ((6 * edv / np.pi)**(1/3))
-        sphericity_es = lv_diameter_es / ((6 * esv / np.pi)**(1/3))
 
         # Store results in a dictionary
         metrics = {
@@ -696,9 +697,8 @@ def marching_cubes_implementation(folder_path):
             "Surface Area at ED (mm²)": sa_ed,
             "Surface Area at ES (mm²)": sa_es,
             "LV Diameter at ED (mm)": lv_diameter_ed,
-            "LV Diameter at ES (mm)": lv_diameter_es,
-            "Sphericity Index at ED": sphericity_ed,
-            "Sphericity Index at ES": sphericity_es
+            "LV Diameter at ES (mm)": lv_diameter_es
+
         }
 
         return metrics
@@ -729,7 +729,7 @@ def marching_cubes_implementation(folder_path):
     cleaned_volume = clean_segmentation(left_ventricle_isolation, radius=2)
 
     # Output gif of cardiac left ventricle cycle from marching cubes reconstruction and output metrics for LV quantification
-    result = create_heartbeat_gif(cropped_volume, cleaned_volume, folder_path)
+    result = create_heartbeat_gif(cropped_volume, cleaned_volume, folder_path, spacing = spacing)
     if result is not None:
         lv_volumes, lv_surface_areas = result
     else:
@@ -743,13 +743,68 @@ def marching_cubes_implementation(folder_path):
 
     return metrics
 
+def save_patient_metrics(file_path, patient_id, patient_gender, patient_age, patient_pathology, metrics):
+    """
+    Appends a patient's LV metrics to an Excel file safely.
+
+    Parameters:
+    - file_path: String path to the Excel file.
+    - patient_id: Unique patient ID.
+    - patient_gender: Patient gender.
+    - patient_age: Patient age.
+    - patient_pathology: Patient pathology.
+    - metrics: Dictionary containing LV metrics.
+    """
+    
+    # Ensure file_path is a valid string
+    if not isinstance(file_path, str):
+        raise ValueError(f"Expected file_path as a string, but got {type(file_path)}: {file_path}")
+    
+    # Convert patient data to a DataFrame row
+    patient_data = {
+        "Patient ID": patient_id,
+        "Gender": patient_gender,
+        "Age": patient_age,
+        "Pathology": patient_pathology,
+        **metrics  # Expands all LV metrics into separate columns
+    }
+    
+    new_data = pd.DataFrame([patient_data])
+
+    # Ensure the directory exists before saving
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+    # Check if file exists
+    if os.path.exists(file_path):
+        try:
+            existing_data = pd.read_excel(file_path, engine="openpyxl")
+            updated_data = pd.concat([existing_data, new_data], ignore_index=True)
+        except Exception as e:
+            raise RuntimeError(f"Error reading the existing Excel file: {e}")
+    else:
+        updated_data = new_data
+
+    # Safe saving - avoid permission issues
+    temp_path = file_path + "_tmp.xlsx"
+    updated_data.to_excel(temp_path, index=False, engine="openpyxl")
+
+    # Replace the old file with the new one safely
+    os.replace(temp_path, file_path)
+    
+    print(f"✅ Patient {patient_id} data added to {file_path}")
+
+
+
 def main():
     xlsx_filepaths = pd.read_excel(patient_data_excel_path, sheet_name=patient_data)
     patient_ids = xlsx_filepaths['patient_id'].unique()
-
     current_patient_idx = 0
 
-    while 0 <= current_patient_idx < 2:
+    # patient_metrics_marching_cubes_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\Marching_Cubes\patient_metrics_marching_cubes.xlsx"
+
+    # save_excel_path = os.path.expanduser(save_excel_path) 
+
+    while 0 <= current_patient_idx < len(patient_ids):
 
         patient_id = patient_ids[current_patient_idx]
         patient_filepaths = xlsx_filepaths.loc[xlsx_filepaths['patient_id']==patient_id, 'filepath'].tolist()
@@ -765,33 +820,18 @@ def main():
 
         print(f"Processing MRI of patient: {patient_id}")
 
-        # Ensure all metric values are scalar (convert lists/arrays to single values)
-        metrics = marching_cubes_implementation(patient_filepaths[0])
-        print(f"{metrics}")
-        formatted_metrics = {key: (value[0] if isinstance(value, (list, tuple, np.ndarray)) else value) for key, value in metrics.items()}
-
-        # Create a single dictionary for the patient
-        patient_information = {
-            "Patient ID": patient_id,
-            "Gender": patient_gender,
-            "Age": patient_age,
-            "Pathology": patient_pathology,
-            **formatted_metrics  # Merge the metrics into the dictionary
-        }
-
-        # Convert to DataFrame for exporting
-        df = pd.DataFrame([patient_information])  # Create a single-row DataFrame
-
-        # Check if the file already exists to decide header inclusion
-        if os.path.exists(user_handle):
-            with pd.ExcelWriter(user_handle, engine="openpyxl", mode="a", if_sheet_exists="overlay") as writer:
-                df.to_excel(writer, index=False, header=False)  # Append without headers
-        else:
-            df.to_excel(user_handle, index=False)  # Create new file with headers
-
-        print(f"Metrics for Patient {patient_id} saved to {user_handle}")
-
-        current_patient_idx += 1
+        try:
+            # Ensure all metric values are scalar (convert lists/arrays to single values)
+            metrics = marching_cubes_implementation(patient_filepaths[0])
+            save_patient_metrics(patient_metrics_marching_cubes_path, patient_id, patient_gender, patient_age, patient_pathology, metrics)
+            current_patient_idx += 1
+        except Exception as e:
+            print(f"Skipping Patient {patient_id} due to error: {e}")
+            current_patient_idx += 1
+            continue  # Moves to the next patient
+            
+        
+        # formatted_metrics = {key: (value[0] if isinstance(value, (list, tuple, np.ndarray)) else value) for key, value in metrics.items()}
 
 # Run the gui
 if __name__ == "__main__":
