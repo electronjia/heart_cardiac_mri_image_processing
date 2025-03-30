@@ -1,0 +1,654 @@
+{
+    "patient_0": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.3,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_1": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.3,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+    },
+    "patient_2": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.3,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_3": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            120,
+            120
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_4": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_5": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_6": {
+        "eccentricity": 0.7,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+    },
+    "patient_7": {
+        "eccentricity": 0.8,
+        "area": 500,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+    },
+    "patient_8": {
+        "eccentricity": 0.8,
+        "area": 500,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_9": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.0,
+        "level": 0.7,
+        "distance_centroid_th": 30
+    },
+    "patient_10": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+    },
+    "patient_11": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+    },
+    "patient_12": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+
+    },
+    "patient_13": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+
+    },
+    "patient_14": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_15": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_16": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+    },
+    "patient_17": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            120,
+            120
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+
+    },
+    "patient_18": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+    },
+    "patient_19": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            140,
+            140
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.07,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+
+    },
+    "patient_20": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+
+    },
+    "patient_21": {
+        "eccentricity": 0.9,
+        "area": 300,
+        "seed_starter": [
+            130,
+            150
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.07,
+        "sigma_edge": 6.5,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+    },
+    "patient_22": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            120,
+            120
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+
+    },
+    "patient_23": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            110
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+
+    },
+    "patient_24": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+    },
+    "patient_25": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            110,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_26": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+    },
+    "patient_27": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_28": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+    },
+    "patient_29": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 10
+    },
+    "patient_30": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_31": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+    },
+    "patient_32": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+    },
+    "patient_33": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_34": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+
+    },
+    "patient_35": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+
+    },
+    "patient_36": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+
+    },
+    "patient_37": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_38": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_39": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20
+    },
+    "patient_40": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+
+    },
+    "patient_41": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            120,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.5,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+    },
+    "patient_42": {
+        "eccentricity": 0.8,
+        "area": 400,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 6.0,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 2
+    },
+    "patient_43": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            110,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.5,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+
+    },
+    "patient_44": {
+        "eccentricity": 0.8,
+        "area": 300,
+        "seed_starter": [
+            130,
+            130
+        ],
+        "sigma_gaus": 0.05,
+        "clip_limit": 0.03,
+        "sigma_edge": 5.5,
+        "level": 0.7,
+        "distance_centroid_th": 20,
+	"snakes_iter" : 50,
+	"snakes_radius" : 3
+
+    }
+}
