@@ -801,6 +801,7 @@ def main():
     current_patient_idx = 0
 
     # patient_metrics_marching_cubes_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\Marching_Cubes\patient_metrics_marching_cubes.xlsx"
+    # patient_boundary_extraction_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\Marching_Cubes\patient_metrics_marching_cubes.xlsx"
 
     # save_excel_path = os.path.expanduser(save_excel_path) 
 
@@ -822,8 +823,13 @@ def main():
 
         try:
             # Ensure all metric values are scalar (convert lists/arrays to single values)
-            metrics = marching_cubes_implementation(patient_filepaths[0])
-            save_patient_metrics(patient_metrics_marching_cubes_path, patient_id, patient_gender, patient_age, patient_pathology, metrics)
+            # USE FOR Kaiwen's marching cubes code section
+            # metrics = marching_cubes_implementation(patient_filepaths[0])
+            # save_patient_metrics(patient_metrics_marching_cubes_path, patient_id, patient_gender, patient_age, patient_pathology, metrics)
+
+            # USE FOR Mahri's boundary extracted masks
+            metrics = boundary_extraction_implementation(patient_filepaths[0])
+            save_patient_metrics(patient_boundary_extraction_path, patient_id, patient_gender, patient_age, patient_pathology, metrics)
             current_patient_idx += 1
         except Exception as e:
             print(f"Skipping Patient {patient_id} due to error: {e}")
