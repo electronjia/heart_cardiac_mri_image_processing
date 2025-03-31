@@ -13,6 +13,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.spatial import Delaunay
 from skimage.io import imsave
 import pandas as pd
+from PIL import Image
 from config import *
 
 def marching_cubes_implementation(folder_path):
@@ -490,40 +491,6 @@ def marching_cubes_implementation(folder_path):
         else:
             plt.show()
 
-    def plot_lv_metrics(lv_volumes, lv_surface_areas, num_frames=20):
-        """
-        Plots LV Volume (mL) and LV Surface Area (cm²) over the cardiac cycle.
-
-        Parameters:
-        - lv_volumes (list): List of LV volumes over time.
-        - lv_surface_areas (list): List of LV surface areas over time.
-        - num_frames (int): Number of frames in the cardiac cycle (default: 20).
-        """
-        time_points = np.linspace(0, 100, num_frames)  # Normalize time (0-100% cardiac cycle)
-
-        plt.figure(figsize=(10, 5))
-
-        # Plot LV Volume
-        plt.subplot(1, 2, 1)
-        plt.plot(time_points, lv_volumes, marker="o", linestyle="-", color="b", label="LV Volume")
-        plt.xlabel("Cardiac Cycle (%)")
-        plt.ylabel("LV Volume (mL)")
-        plt.title("LV Volume over Cardiac Cycle")
-        plt.legend()
-        plt.grid(True)
-
-        # Plot LV Surface Area
-        plt.subplot(1, 2, 2)
-        plt.plot(time_points, lv_surface_areas, marker="s", linestyle="-", color="r", label="LV Surface Area")
-        plt.xlabel("Cardiac Cycle (%)")
-        plt.ylabel("LV Surface Area (cm²)")
-        plt.title("LV Surface Area over Cardiac Cycle")
-        plt.legend()
-        plt.grid(True)
-
-        plt.tight_layout()
-        plt.show()
-
     def create_heartbeat_gif(original_volume, segmented_volume, folder_path, frames_per_slice=20, spacing =(10.0, 1.367188, 1.367188)):
         """
         Generates a GIF of the beating heart by iterating through the cardiac cycle.
@@ -720,7 +687,7 @@ def marching_cubes_implementation(folder_path):
     filtered_segmentation = filter_circular_regions(segmented_volume, circularity_thresh=0.15, min_size=100)
 
     # Apply watershed segmetation 
-    watershed_volume = improved_watershed(segmented_volume)
+    watershed_volume = improved_watershed(filtered_segmentation)
 
     # Isolate the left ventricle
     left_ventricle_isolation = LV_isolation(watershed_volume)
@@ -765,16 +732,16 @@ def boundary_extraction_implementation(folder_path):
                 try:
                     dicom_files.append(pydicom.dcmread(filepath))
                 except Exception as e:
-                    print(f"⚠️ Warning: Could not read {filename} - {e}")
+                    print(f"Warning: Could not read {filename} - {e}")
 
         if not dicom_files:
-            raise ValueError("❌ No valid DICOM files found in the folder.")
+            raise ValueError("No valid DICOM files found in the folder.")
 
         # Try sorting by ImagePositionPatient if available
         try:
             dicom_files.sort(key=lambda x: float(x.ImagePositionPatient[2]))
         except AttributeError:
-            print("⚠️ ImagePositionPatient not found. Using default order.")
+            print("ImagePositionPatient not found. Using default order.")
 
         # Stack images into a 3D NumPy array
         volume = np.stack([file.pixel_array for file in dicom_files])
@@ -784,14 +751,14 @@ def boundary_extraction_implementation(folder_path):
             slice_thickness = float(dicom_files[0].SliceThickness)
         except AttributeError:
             slice_thickness = 1.0  # Default value if missing
-            print("⚠️ SliceThickness not found. Using default value of 1.0.")
+            print("SliceThickness not found. Using default value of 1.0.")
 
         try:
             pixel_spacing = dicom_files[0].PixelSpacing
             spacing = (slice_thickness, float(pixel_spacing[0]), float(pixel_spacing[1]))
         except AttributeError:
             spacing = (slice_thickness, 1.0, 1.0)  # Default pixel spacing
-            print("⚠️ PixelSpacing not found. Using default (1.0, 1.0).")
+            print("PixelSpacing not found. Using default (1.0, 1.0).")
 
         print(f"Loaded DICOM series: {len(dicom_files)} slices")
         print(f"Volume shape: {volume.shape}")
@@ -802,11 +769,20 @@ def boundary_extraction_implementation(folder_path):
             if filename.endswith('_mask_edge_detection.png'):
                 filepath = os.path.join(folder_path, filename)
                 try:
-                    png_masks.append(pydicom.dcmread(filepath))
+                    # Open PNG as grayscale image (mode='L' ensures single-channel)
+                    mask = Image.open(filepath).convert('L')  # 'L' mode -> grayscale
+                    png_masks.append(np.array(mask))  # Convert to NumPy array
                 except Exception as e:
-                    print(f"⚠️ Warning: Could not read {filename} - {e}")
+                    print(f"Warning: Could not read {filename} - {e}")
 
-        return volume, spacing, dicom_files, png_masks
+        # Stack images into a 3D NumPy array
+        if png_masks:  # Ensure there are valid masks before stacking
+            segmented_slices = np.stack(png_masks)
+        else:
+            print("No valid PNG masks found in the folder!")
+            segmented_slices = None  # Avoids crashing when masks are missing
+
+        return volume, spacing, dicom_files, png_masks, segmented_slices
     
     def extract_surface_marching_cubes(original_volume, segmented_volume, spacing):
         """
@@ -907,7 +883,7 @@ def boundary_extraction_implementation(folder_path):
         """
         # Extract folder name and create new results directory
         base_folder_name = os.path.basename(os.path.normpath(folder_path))
-        results_folder = os.path.join(folder_path, f"{base_folder_name}_marching_cubes_results")
+        results_folder = os.path.join(folder_path, f"{base_folder_name}_edge_detection_results")
         os.makedirs(results_folder, exist_ok=True)
 
         frames = []
@@ -952,50 +928,6 @@ def boundary_extraction_implementation(folder_path):
 
         return lv_volumes, lv_surface_areas
 
-    def normalize_dicom_image(image):
-        """
-        Normalize DICOM image pixel values to 0-255 for correct visualization.
-
-        Parameters:
-        - image: 2D NumPy array of the DICOM slice.
-
-        Returns:
-        - Normalized image (dtype=np.uint8) for saving as PNG.
-        """
-        image = image.astype(np.float32)
-        min_val, max_val = image.min(), image.max()
-        
-        if max_val > min_val:  # Avoid division by zero
-            image = (image - min_val) / (max_val - min_val) * 255.0
-
-        return image.astype(np.uint8)
-
-    def save_slices_and_masks(cleaned_volume, dicom_files, folder_path):
-        """
-        Saves both the original DICOM slice as a PNG and the corresponding LV mask.
-
-        Parameters:
-        - cleaned_volume: 3D NumPy array of LV masks.
-        - dicom_files: List of original DICOM objects.
-        - folder_path: Directory where DICOM files are stored (files will be saved here).
-        """
-        # Extract original size from first DICOM slice
-        original_size = dicom_files[0].pixel_array.shape
-        crop_size = cleaned_volume[0].shape
-
-        for i, dicom_file in enumerate(dicom_files):
-            # Extract original DICOM filename (without extension)
-            dicom_filename = os.path.splitext(os.path.basename(dicom_file.filename))[0]
-
-            # Normalize and save the original DICOM slice
-            original_image = normalize_dicom_image(dicom_file.pixel_array)
-            original_path = os.path.join(folder_path, f"{dicom_filename}.png")
-            imsave(original_path, original_image)
-
-            # Save the mask (even if empty)
-            mask_path = os.path.join(folder_path, f"{dicom_filename}_mask_marching_cubes.png")
-            imsave(mask_path, (cleaned_volume * 255).astype(np.uint8))  # Convert binary mask to 0-255
-
     def calculate_lv_metrics(lv_volumes, lv_surface_areas):
         """
         Calculate important LV metrics for cardiac function assessment.
@@ -1012,8 +944,8 @@ def boundary_extraction_implementation(folder_path):
         ed_index = np.argmax(lv_volumes)  # Frame with largest volume (EDV)
         es_index = np.argmin(lv_volumes)  # Frame with smallest volume (ESV)
 
-        edv = lv_volumes[ed_index]/100  # End-Diastolic Volume
-        esv = lv_volumes[es_index]/100  # End-Systolic Volume
+        edv = lv_volumes[ed_index]  # End-Diastolic Volume
+        esv = lv_volumes[es_index]  # End-Systolic Volume
 
         # Calculate Ejection Fraction
         ef = ((edv - esv) / edv) * 100 if edv > 0 else 0  # Avoid division by zero
@@ -1032,8 +964,8 @@ def boundary_extraction_implementation(folder_path):
             "Ejection Fraction (%)": ef,
             "End-Diastolic Volume (mL)": edv,
             "End-Systolic Volume (mL)": esv,
-            "Surface Area at ED (mm²)": sa_ed,
-            "Surface Area at ES (mm²)": sa_es,
+            "Surface Area at ED (cm²)": sa_ed,
+            "Surface Area at ES (cm²)": sa_es,
             "LV Diameter at ED (mm)": lv_diameter_ed,
             "LV Diameter at ES (mm)": lv_diameter_es
 
@@ -1041,18 +973,16 @@ def boundary_extraction_implementation(folder_path):
 
         return metrics
     
-    volume, spacing, dicom_files, cleaned_volume = load_dicom_series(folder_path)
+    volume, spacing, dicom_files,png_masks, segmented_volume = load_dicom_series(folder_path)
 
     # Output gif of cardiac left ventricle cycle from marching cubes reconstruction and output metrics for LV quantification
-    result = create_heartbeat_gif(volume, cleaned_volume, folder_path, spacing = spacing)
+    result = create_heartbeat_gif(volume, segmented_volume, folder_path, spacing = spacing)
     if result is not None:
         lv_volumes, lv_surface_areas = result
     else:
         lv_volumes, lv_surface_areas = [], []
         print("⚠️ Warning: create_heartbeat_gif() returned None. Using empty lists.")
 
-    # Save the masks as well as the original dicom files
-    save_slices_and_masks(cleaned_volume, dicom_files, folder_path)
 
     metrics = calculate_lv_metrics(lv_volumes, lv_surface_areas)
 
@@ -1116,7 +1046,7 @@ def main():
     current_patient_idx = 0
 
     # patient_metrics_marching_cubes_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\Marching_Cubes\patient_metrics_marching_cubes.xlsx"
-    # patient_boundary_extraction_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\Marching_Cubes\patient_metrics_marching_cubes.xlsx"
+    patient_boundary_extraction_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\edge_detection_and_contours\patient_metrics_edge_detection.xlsx"
 
     # save_excel_path = os.path.expanduser(save_excel_path) 
 
