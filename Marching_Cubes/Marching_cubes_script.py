@@ -14,7 +14,7 @@ from scipy.spatial import Delaunay
 from skimage.io import imsave
 import pandas as pd
 from PIL import Image
-from config import *
+from config_marching import *
 
 def marching_cubes_implementation(folder_path):
     def load_dicom_series(folder_path):
@@ -1046,7 +1046,8 @@ def main():
     current_patient_idx = 0
 
     # patient_metrics_marching_cubes_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\Marching_Cubes\patient_metrics_marching_cubes.xlsx"
-    patient_boundary_extraction_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\edge_detection_and_contours\patient_metrics_edge_detection.xlsx"
+    
+    # patient_boundary_extraction_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\edge_detection_and_contours\patient_metrics_edge_detection.xlsx"
 
     # save_excel_path = os.path.expanduser(save_excel_path) 
 
