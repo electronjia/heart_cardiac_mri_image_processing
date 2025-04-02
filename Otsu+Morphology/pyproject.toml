@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "solution_1462"
+version = "1.0.0-alpha.0"
+description = "Central Organ Segmentation without Neural Networks"
+license = "Apache-2.0"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "", email = "" }
+]
+dependencies = ["numpy", "scikit-image", "pandas", "matplotlib", "scipy", "tqdm"]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["solution_1462"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["solution_1462"]
+
+[project.urls]
+Homepage = ""
+Documentation = ""
+Repository = ""
