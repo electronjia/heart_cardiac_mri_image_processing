@@ -21,13 +21,13 @@ class Dataset(Sequence):
         self.root_dir: str = root_dir
         self.labelled: bool = labelled
         self.cache: bool = cache
-        self._cases: list[str] = [case[:case.rfind(".")] for case in listdir(f"{root_dir}/cases")
+        self._cases: list[str] = [case[:case.rfind(".")] for case in listdir(f"{root_dir}/Allcases")
                                   if case.endswith(".png")]
         self._case_cache: dict[str, ndarray] = {}
         self._label_cache: dict[str, ndarray] = {}
 
     def load_case(self, case_id: str) -> ndarray:
-        return io.imread(f"{self.root_dir}/cases/{case_id}.png", as_gray=True)
+        return io.imread(f"{self.root_dir}/Allcases/{case_id}.png", as_gray=True)
 
     def get_case(self, case_id: str) -> ndarray:
         if case_id in self._case_cache:
@@ -38,7 +38,7 @@ class Dataset(Sequence):
         return r
 
     def load_label(self, case_id: str) -> ndarray:
-        return io.imread(f"{self.root_dir}/labels/{case_id}_label.png", as_gray=True)
+        return io.imread(f"{self.root_dir}/AllLabels/{case_id}_mask.png", as_gray=True)
 
     def get_label(self, case_id: str) -> ndarray:
         if case_id in self._label_cache:

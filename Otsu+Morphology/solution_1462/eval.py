@@ -19,6 +19,7 @@ def generate(dataset: Dataset, output_dir: str, label_suffix: str = "_label", si
         io.imsave(f"{output_dir}/{case_id}{label_suffix}.png", mask)
 
 
+# you will see 
 def show_case(image: ndarray, cleaned: ndarray, mask: ndarray, label: ndarray, case_id: str = "") -> None:
     fig, axes = plt.subplots(2, 2, figsize=(8, 8))
     if image.max() > 1:
@@ -37,7 +38,7 @@ def show_case(image: ndarray, cleaned: ndarray, mask: ndarray, label: ndarray, c
     plt.tight_layout()
     plt.show()
 
-
+#
 def evaluate(dataset: Dataset, output_csv: str = "", show_cases: int = 5, sigma: float | None = None,
              threshold_offset: float | None = None) -> dict[str, list[str] | list[float]]:
     if not dataset.labelled:
