@@ -988,6 +988,285 @@ def boundary_extraction_implementation(folder_path):
 
     return metrics
 
+def watershed_implementation(folder_path):
+    def load_dicom_series(folder_path):
+        """
+        Load a DICOM image series from a folder and return the 3D volume and voxel spacing.
+
+        Parameters:
+        - folder_path (str): Path to the folder containing DICOM files.
+
+        Returns:
+        - volume (numpy array): 3D NumPy array of image data.
+        - spacing (tuple): (slice thickness, pixel spacing in x, pixel spacing in y).
+        """
+        dicom_files = []
+        png_masks = []
+
+        # Load DICOM files from folder
+        for filename in sorted(os.listdir(folder_path)):
+            if filename.endswith('.dcm'):
+                filepath = os.path.join(folder_path, filename)
+                try:
+                    dicom_files.append(pydicom.dcmread(filepath))
+                except Exception as e:
+                    print(f"Warning: Could not read {filename} - {e}")
+
+        if not dicom_files:
+            raise ValueError("No valid DICOM files found in the folder.")
+
+        # Try sorting by ImagePositionPatient if available
+        try:
+            dicom_files.sort(key=lambda x: float(x.ImagePositionPatient[2]))
+        except AttributeError:
+            print("ImagePositionPatient not found. Using default order.")
+
+        # Stack images into a 3D NumPy array
+        volume = np.stack([file.pixel_array for file in dicom_files])
+
+        # Extract voxel spacing
+        try:
+            slice_thickness = float(dicom_files[0].SliceThickness)
+        except AttributeError:
+            slice_thickness = 1.0  # Default value if missing
+            print("SliceThickness not found. Using default value of 1.0.")
+
+        try:
+            pixel_spacing = dicom_files[0].PixelSpacing
+            spacing = (slice_thickness, float(pixel_spacing[0]), float(pixel_spacing[1]))
+        except AttributeError:
+            spacing = (slice_thickness, 1.0, 1.0)  # Default pixel spacing
+            print("PixelSpacing not found. Using default (1.0, 1.0).")
+
+        print(f"Loaded DICOM series: {len(dicom_files)} slices")
+        print(f"Volume shape: {volume.shape}")
+        print(f"Voxel spacing: {spacing}")
+
+        # Load Mask files from folder
+        for filename in sorted(os.listdir(folder_path)):
+            if filename.endswith('_mask_otsu.png'):
+                filepath = os.path.join(folder_path, filename)
+                try:
+                    # Open PNG as grayscale image (mode='L' ensures single-channel)
+                    mask = Image.open(filepath).convert('L')  # 'L' mode -> grayscale
+                    png_masks.append(np.array(mask))  # Convert to NumPy array
+                except Exception as e:
+                    print(f"Warning: Could not read {filename} - {e}")
+
+        # Stack images into a 3D NumPy array
+        if png_masks:  # Ensure there are valid masks before stacking
+            segmented_slices = np.stack(png_masks)
+        else:
+            print("No valid PNG masks found in the folder!")
+            segmented_slices = None  # Avoids crashing when masks are missing
+
+        return volume, spacing, dicom_files, png_masks, segmented_slices
+    
+    def extract_surface_marching_cubes(original_volume, segmented_volume, spacing):
+        """
+        Extracts a 3D surface mesh from the original DICOM volume using Marching Cubes.
+        The segmentation mask is used as a threshold to isolate the left ventricle region.
+
+        Parameters:
+        - original_volume (ndarray): The 3D DICOM volume (slices, height, width).
+        - segmented_volume (ndarray): The 3D binary segmentation mask (LV = 1, Background = 0).
+        - spacing (tuple): (dz, dy, dx) voxel spacing for accurate scaling.
+
+        Returns:
+        - vertices (ndarray): Mesh vertices.
+        - faces (ndarray): Mesh faces (triangles).
+        """
+        if original_volume.ndim != 3 or segmented_volume.ndim != 3:
+            raise ValueError(f"Expected 3D input, but got shape {original_volume.shape}")
+
+        thresholded_volume = np.where(segmented_volume > 0, original_volume, 0)
+
+        valid_pixels = thresholded_volume[thresholded_volume > 0]
+        if len(valid_pixels) == 0:
+            print("Warning: No valid pixels in thresholded volume. Skipping.")
+            return None, None
+
+        level = np.percentile(valid_pixels, 50)
+
+        vertices, faces, _, _ = marching_cubes(thresholded_volume, level=level, spacing=spacing)
+        return vertices, faces
+
+    def compute_lv_metrics(vertices, faces, spacing):
+        """
+        Computes Left Ventricle volume and surface area from Marching Cubes output.
+        
+        Parameters:
+        - vertices (ndarray): Extracted 3D points from marching cubes.
+        - faces (ndarray): Triangular faces from marching cubes.
+        - spacing (tuple): Voxel spacing (dz, dy, dx) in mm.
+
+        Returns:
+        - volume (float): LV volume in milliliters (mL).
+        - surface_area (float): LV surface area in cm².
+        """
+
+        # Convert voxel spacing to cubic mm (scaling factor)
+        voxel_volume = spacing[0] * spacing[1] * spacing[2]  # mm³ per voxel
+
+        # Compute LV Volume using the Convex Hull instead of Delaunay
+        from scipy.spatial import ConvexHull
+        hull = ConvexHull(vertices)
+        volume = hull.volume * 1e-3  # Convert mm³ to mL
+
+        # Compute LV Surface Area (using skimage function)
+        surface_area = mesh_surface_area(vertices, faces) * 1e-2  # Convert mm² to cm²
+
+        return volume, surface_area
+
+    def plot_3d_mesh(vertices, faces, save_path=None, patient_name = None):
+        """
+        Plots the extracted 3D mesh using Matplotlib.
+        """
+        if vertices is None or faces is None:
+            return
+
+        fig = plt.figure(figsize=(8, 8))
+        ax = fig.add_subplot(111, projection="3d")
+
+        mesh = Poly3DCollection(vertices[faces], alpha=0.6)
+        mesh.set_edgecolor("k")
+        ax.add_collection3d(mesh)
+
+        ax.view_init(elev=100, azim=180) 
+
+        ax.set_xlim(vertices[:, 0].min(), vertices[:, 0].max())
+        ax.set_ylim(vertices[:, 1].min(), vertices[:, 1].max())
+        ax.set_zlim(vertices[:, 2].min(), vertices[:, 2].max())
+
+        ax.set_xlabel("X-axis")
+        ax.set_ylabel("Y-axis")
+        ax.set_zlabel("Z-axis")
+        ax.set_title(f"Patient {patient_name} Mesh of Left Ventricle")
+
+        if save_path:
+            plt.savefig(save_path)
+            plt.close()
+        else:
+            plt.show()
+
+    def create_heartbeat_gif(original_volume, segmented_volume, folder_path, frames_per_slice=20, spacing =(10.0, 1.367188, 1.367188)):
+        """
+        Generates a GIF of the beating heart by iterating through the cardiac cycle.
+        
+        Parameters:
+        - original_volume (ndarray): The 3D DICOM volume (frames, height, width).
+        - segmented_volume (ndarray): The 3D segmentation mask (frames, height, width).
+        - folder_path (str): Base folder where results should be saved.
+        - frames_per_slice (int): Number of frames per depth slice.
+        """
+        # Extract folder name and create new results directory
+        base_folder_name = os.path.basename(os.path.normpath(folder_path))
+        results_folder = os.path.join(folder_path, f"{base_folder_name}_watershed_results")
+        os.makedirs(results_folder, exist_ok=True)
+
+        frames = []
+        temp_frame_paths = []
+        lv_volumes = []
+        lv_surface_areas = []
+
+        num_frames = frames_per_slice  # Since we have 20 unique time frames
+        slices_per_frame = original_volume.shape[0] // num_frames  # Number of spatial slices
+
+        # Loop through each time frame 
+        for t in range(num_frames):
+            print(f"Processing frame {t + 1}/{num_frames}")
+
+            # Select every 20th slice for the current time frame
+            frame_original = original_volume[t::num_frames]  # Shape: (slices_per_frame, height, width)
+            frame_segmented = segmented_volume[t::num_frames]  # Shape: (slices_per_frame, height, width)
+
+            vertices, faces = extract_surface_marching_cubes(frame_original, frame_segmented, spacing)
+
+            if vertices is None or faces is None:
+                continue  # Skip frames with no valid segmentation
+
+            # Compute LV volume and surface area
+            volume, surface_area = compute_lv_metrics(vertices, faces, spacing)
+            lv_volumes.append(volume)
+            lv_surface_areas.append(surface_area)
+
+            frame_path = os.path.join(results_folder, f"{base_folder_name}_frame_{t+1}.png")
+            plot_3d_mesh(vertices, faces, save_path=frame_path, patient_name=base_folder_name)
+            temp_frame_paths.append(frame_path)
+
+        # Load images and save GIF
+        for frame_path in temp_frame_paths:
+            frames.append(imageio.v2.imread(frame_path))
+
+        save_gif_path = os.path.join(results_folder, f"{base_folder_name}_heartbeat.gif")
+        imageio.mimsave(save_gif_path, frames, duration=0.1)
+
+        print(f"Saved all frames and heartbeat animation for patient {base_folder_name}")
+        volume, surface_area = compute_lv_metrics(vertices, faces, spacing)
+
+        return lv_volumes, lv_surface_areas
+
+    def calculate_lv_metrics(lv_volumes, lv_surface_areas):
+        """
+        Calculate important LV metrics for cardiac function assessment.
+
+        Parameters:
+        - lv_volumes: List or NumPy array of left ventricle volumes across cardiac cycle (sorted by frame).
+        - lv_surface_areas: List or NumPy array of left ventricle surface areas across the cycle.
+
+        Returns:
+        - A dictionary of LV metrics, ready for export to Excel.
+        """
+
+        # Identify end-diastolic (largest volume) and end-systolic (smallest volume) frames
+        ed_index = np.argmax(lv_volumes)  # Frame with largest volume (EDV)
+        es_index = np.argmin(lv_volumes)  # Frame with smallest volume (ESV)
+
+        edv = lv_volumes[ed_index]  # End-Diastolic Volume
+        esv = lv_volumes[es_index]  # End-Systolic Volume
+
+        # Calculate Ejection Fraction
+        ef = ((edv - esv) / edv) * 100 if edv > 0 else 0  # Avoid division by zero
+
+        # Surface areas
+        sa_ed = lv_surface_areas[ed_index]  # Surface area at ED
+        sa_es = lv_surface_areas[es_index]  # Surface area at ES
+
+        # Estimate LV diameters (approximated as width of largest cross-section)
+        lv_diameter_ed = (3 * edv / (4 * np.pi))**(1/3) * 20  # Approximated from volume
+        lv_diameter_es = (3 * esv / (4 * np.pi))**(1/3) * 20  
+
+
+        # Store results in a dictionary
+        metrics = {
+            "Ejection Fraction (%)": ef,
+            "End-Diastolic Volume (mL)": edv,
+            "End-Systolic Volume (mL)": esv,
+            "Surface Area at ED (cm²)": sa_ed,
+            "Surface Area at ES (cm²)": sa_es,
+            "LV Diameter at ED (mm)": lv_diameter_ed,
+            "LV Diameter at ES (mm)": lv_diameter_es
+
+        }
+
+        return metrics
+    
+    volume, spacing, dicom_files,png_masks, segmented_volume = load_dicom_series(folder_path)
+
+    # Output gif of cardiac left ventricle cycle from marching cubes reconstruction and output metrics for LV quantification
+    result = create_heartbeat_gif(volume, segmented_volume, folder_path, spacing = spacing)
+    if result is not None:
+        lv_volumes, lv_surface_areas = result
+    else:
+        lv_volumes, lv_surface_areas = [], []
+        print("⚠️ Warning: create_heartbeat_gif() returned None. Using empty lists.")
+
+
+    metrics = calculate_lv_metrics(lv_volumes, lv_surface_areas)
+
+    return metrics
+
+
 def save_patient_metrics(file_path, patient_id, patient_gender, patient_age, patient_pathology, metrics):
     """
     Appends a patient's LV metrics to an Excel file safely.
@@ -1049,6 +1328,8 @@ def main():
     
     # patient_boundary_extraction_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\edge_detection_and_contours\patient_metrics_edge_detection.xlsx"
 
+    patient_watershed_path = r"C:\Users\Kaiwen Liu\OneDrive - University of Toronto\Desktop\github_repo\heart_cardiac_mri_image_processing\Otsu+Morphology\patient_watershed_results.xlsx"
+
     # save_excel_path = os.path.expanduser(save_excel_path) 
 
     while 0 <= current_patient_idx < len(patient_ids):
@@ -1074,8 +1355,13 @@ def main():
             # save_patient_metrics(patient_metrics_marching_cubes_path, patient_id, patient_gender, patient_age, patient_pathology, metrics)
 
             # USE FOR Mahri's boundary extracted masks
-            metrics = boundary_extraction_implementation(patient_filepaths[0])
-            save_patient_metrics(patient_boundary_extraction_path, patient_id, patient_gender, patient_age, patient_pathology, metrics)
+            # metrics = boundary_extraction_implementation(patient_filepaths[0])
+
+            # USE FOR Shimin's watershed extracted masks
+            metrics = watershed_implementation(patient_filepaths[0])
+
+
+            save_patient_metrics(patient_watershed_path, patient_id, patient_gender, patient_age, patient_pathology, metrics)
             current_patient_idx += 1
         except Exception as e:
             print(f"Skipping Patient {patient_id} due to error: {e}")
