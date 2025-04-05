@@ -233,9 +233,9 @@ def marching_cubes_implementation(folder_path):
 
         Parameters:
         - segmented_volume (ndarray): Binary 3D array from Otsu thresholding.
-        - blur_sigma (float): Standard deviation for Gaussian blur (default: 1.5).
-        - distance_exp (float): Exponent for distance transform enhancement (default: 1.2).
-        - seed_quantile (float): Quantile threshold for selecting seeds (default: 0.5).
+        - blur_sigma (float): Standard deviation for Gaussian blur.
+        - distance_exp (float): Exponent for distance transform enhancement.
+        - seed_quantile (float): Quantile threshold for selecting seeds.
 
         Returns:
         - watershed_labels (ndarray): 3D array with labeled regions after Watershed segmentation.
