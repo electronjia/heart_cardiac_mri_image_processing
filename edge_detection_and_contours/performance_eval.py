@@ -3,7 +3,6 @@ from config import *
 from PIL import Image
 import numpy as np
 
-edge_results_identifier = "_mask_edge_detection"
 
 mask_filepaths_df = pd.read_excel(patient_data_excel_path, sheet_name="mask_filepaths")
 
@@ -20,7 +19,7 @@ def compute_iou(pred, target, epsilon=1e-6):
     return (intersection + epsilon) / (union + epsilon)
 
 
-new_dataframe_results = pd.DataFrame(columns=["patient_id", "dcm_image_filepath", "image_filepath", "mask_filepath",	"csv_filepath", mahri_results_column,  "dice", "iou"])
+new_dataframe_results = pd.DataFrame(columns=["patient_id", "dcm_image_filepath", "image_filepath", "mask_filepath",	"csv_filepath", shimin_results_column,  "dice", "iou"])
 
 for idx, row in mask_filepaths_df.iterrows():
 
@@ -41,7 +40,7 @@ for idx, row in mask_filepaths_df.iterrows():
 
 
         # predicted mask
-        prediction_filepath = target_filepath.replace("_mask.png", mahri_results_identifier)
+        prediction_filepath = target_filepath.replace("_mask.png", shimin_results_identifier)
 
         predicted_mask = np.array(Image.open(prediction_filepath).convert("L"), dtype=np.float32)
         predicted_mask[predicted_mask == 255] = 1.0
@@ -57,11 +56,11 @@ for idx, row in mask_filepaths_df.iterrows():
     else:
         new_dataframe_results.loc[len(new_dataframe_results)] = [ patient_id, 
 
-      dcm_img_filepath, img_filepath, mask_filepath, csv_filepath, dcm_img_filepath.replace(".dcm", mahri_results_identifier), None, None
+      dcm_img_filepath, img_filepath, mask_filepath, csv_filepath, dcm_img_filepath.replace(".dcm", shimin_results_identifier), None, None
         ]
 
 
-new_dataframe_results.to_excel(mahri_results_df_filepath, index=False)
+new_dataframe_results.to_excel(shimin_results_df_filepath, index=False)
 
 
 
